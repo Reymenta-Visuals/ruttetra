@@ -33,8 +33,11 @@ public:
 	ofColor fillColor;
 
 	ofVideoPlayer videoPlayer;
-
+	ofVideoGrabber webcam;
 	ofFbo fbo;
+	unsigned int source;
+	int stepWidthTexture;
+	int stepHeightTexture;
 
 	ofShader shader;
 

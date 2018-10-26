@@ -7,11 +7,10 @@ void ofApp::setup() {
 
 	videoPlayer.loadMovie("movies/fingers.mov");
 	videoPlayer.play();
+	source = 0;
+	webcam.initGrabber(1280, 720);
+
 	ofSetWindowTitle("RuttEtra");
-
-
-	// initialize Spout with a sender name, and a texture size
-	//ofxSpout::init("RuttEtra sender", ofGetWidth(), ofGetHeight(), true);
 
 	fbo.allocate(ofGetWidth(), ofGetHeight(), GL_RGBA);
 	fbo.begin();
@@ -41,28 +40,42 @@ void ofApp::setup() {
 
 //--------------------------------------------------------------
 void ofApp::update() {
-	videoPlayer.update();
-	pixels = videoPlayer.getPixelsRef();
+	switch (source)
+	{
+	case 0:
+		videoPlayer.update();
+		pixels = videoPlayer.getPixelsRef();
+		break;
+	case 1:
+		webcam.update();
+		pixels = webcam.getPixelsRef();
+		break;
+	default:
+		break;
+	}
+	
 }
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-	// init sender if it's not already initialized
-	//ofxSpout::initSender();
-
+	int stepWidth = ofGetWidth() / xStep;
+	int stepHeight = ofGetHeight() / yStep;
+	switch (source)
+	{
+	case 0:
+		stepWidthTexture = videoPlayer.getWidth() / xStep;
+		stepHeightTexture = videoPlayer.getHeight() / yStep;
+		break;
+	case 1:
+		stepWidthTexture = webcam.getWidth() / xStep;
+		stepHeightTexture = webcam.getHeight() / yStep;
+		break;
+	default:
+		break;
+	}
+	// draw to fbo begin
 	fbo.begin();
 	ofClear(fillColor);
-
-
-	ofSetColor(lineColor);
-
-	int stepWidth = ofGetWidth() / xStep;
-	int stepWidthCam = videoPlayer.getWidth() / xStep;
-
-	int stepHeight = ofGetHeight() / yStep;
-	int stepHeightCam = videoPlayer.getHeight() / yStep;
-
-
 	ofSetColor(lineColor);
 	ofSetLineWidth(3);
 
@@ -71,15 +84,14 @@ void ofApp::draw() {
 	for (cY = 0; cY < yStep; cY++)
 	{
 
-		ofPoint lastpoint;;
+		ofPoint lastpoint;
 		ofColor currentColor;
 
 		for (int i = 1; i < xStep; i++)
 		{
 
-			currentColor = pixels.getColor(i * stepWidthCam, cY * stepHeightCam);
+			currentColor = pixels.getColor(i * stepWidthTexture, cY * stepHeightTexture);
 			ofPoint thisPoint(i * stepWidth, cY * stepHeight - currentColor.getBrightness() * amp + stepHeight);
-
 
 			if (currentColor.getBrightness() >= threshold)
 			{
@@ -104,11 +116,12 @@ void ofApp::draw() {
 
 			}
 			lastpoint = thisPoint;
-
 		}
 	}
 	
 	fbo.end();
+	// draw to fbo end
+
 
 	//Shader ready to do any post required.
 
@@ -118,6 +131,7 @@ void ofApp::draw() {
 	fbo.draw(0, 0, ofGetWidth(), ofGetHeight());
 	//shader.end();
 	videoPlayer.draw(20, 20);
+	webcam.draw(500, 20);
 	// send screen to Spout
 	
 	spout.sendTexture(fbo.getTexture(), "RuttEtra");
@@ -132,7 +146,19 @@ void ofApp::keyPressed(int key) {
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key) {
-
+	switch (key) {
+	case 'f':
+		ofToggleFullscreen();
+		break;
+	case 'c':
+		source = 1;
+		break;
+	case 'v':
+		source = 0;
+		break;
+	default:
+		break;
+	}
 }
 
 //--------------------------------------------------------------
