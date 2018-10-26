@@ -8,6 +8,7 @@ void ofApp::setup() {
 	videoPlayer.loadMovie("movies/fingers.mov");
 	videoPlayer.play();
 	source = 0;
+	textureToSend = 0;
 	webcam.initGrabber(1280, 720);
 
 	ofSetWindowTitle("RuttEtra");
@@ -16,6 +17,12 @@ void ofApp::setup() {
 	fbo.begin();
 	ofClear(0);
 	fbo.end();
+
+	shaderfbo.allocate(ofGetWidth(), ofGetHeight(), GL_RGBA);
+	shaderfbo.begin();
+	ofClear(0);
+	shaderfbo.end();
+	drawText = false;
 
 	//tweakable shizz
 	xStep = 204;
@@ -36,6 +43,19 @@ void ofApp::setup() {
 	//assign pixel colour to line segments
 	color = true;
 
+	// text
+	font.load("type/verdana.ttf", 100, true, false, true, 0.4, 72);
+	// shader
+#ifdef TARGET_OPENGLES
+	shader.load("shaders_gles/noise.vert", "shaders_gles/noise.frag");
+#else
+	if (ofIsGLProgrammableRenderer()) {
+		shader.load("shaders_gl3/noise.vert", "shaders_gl3/noise.frag");
+	}
+	else {
+		shader.load("shaders/noise.vert", "shaders/noise.frag");
+	}
+#endif
 }
 
 //--------------------------------------------------------------
@@ -122,19 +142,48 @@ void ofApp::draw() {
 	fbo.end();
 	// draw to fbo end
 
+	// fbo for shader begin
+	shaderfbo.begin();
 
 	//Shader ready to do any post required.
-
-	//shader.begin();
-	//shader.setUniformTexture( "tex0", fbo.getTextureReference(), 0 );
+	shader.begin();
 	ofSetColor(255);
-	fbo.draw(0, 0, ofGetWidth(), ofGetHeight());
-	//shader.end();
+	ofFill();
+	shader.setUniformTexture( "tex0", fbo.getTextureReference(), 0 );
+	//we want to pass in some varrying values to animate our type / color 
+	shader.setUniform1f("timeValX", ofGetElapsedTimef() * 0.1);
+	shader.setUniform1f("timeValY", -ofGetElapsedTimef() * 0.18);
+
+	//we also pass in the mouse position 
+	//we have to transform the coords to what the shader is expecting which is 0,0 in the center and y axis flipped. 
+	shader.setUniform2f("mouse", mouseX - ofGetWidth() / 2, ofGetHeight() / 2 - mouseY);
+	//fbo.draw(0, 0, ofGetWidth(), ofGetHeight());
+	if (drawText) font.drawStringAsShapes("Artist de ouf", 90, 260);
+	shader.end();
+
+	shaderfbo.end();
+	// fbo for shader end
+
 	videoPlayer.draw(20, 20);
-	webcam.draw(500, 20);
+	//webcam.draw(500, 20);
 	// send screen to Spout
+	switch (textureToSend) {
+	case 0:
+		spout.sendTexture(fbo.getTexture(), "RuttEtra");
+		break;
+	case 1:
+		spout.sendTexture(videoPlayer.getTexture(), "RuttEtra");
+		break;
+	case 2:
+		spout.sendTexture(shaderfbo.getTexture(), "RuttEtra");
+		break;
+	case 3:
+		spout.sendTexture(webcam.getTexture(), "RuttEtra");
+		break;
+	default:
+		break;
+	}
 	
-	spout.sendTexture(fbo.getTexture(), "RuttEtra");
 }
 void ofApp::exit() {
 	spout.exit();
@@ -155,6 +204,21 @@ void ofApp::keyReleased(int key) {
 		break;
 	case 'v':
 		source = 0;
+		break;
+	case 't':
+		drawText = !drawText;
+		break;
+	case '0':
+		textureToSend = 0;
+		break;
+	case '1':
+		textureToSend = 1;
+		break;
+	case '2':
+		textureToSend = 2;
+		break;
+	case '3':
+		textureToSend = 3;
 		break;
 	default:
 		break;
