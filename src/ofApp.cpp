@@ -5,11 +5,8 @@ void ofApp::setup() {
 	ofSetFrameRate(60);
 	ofEnableAlphaBlending();
 
-	videoPlayer.loadMovie("movies/fingers.mov");
-	videoPlayer.play();
-	source = 0;
 	textureToSend = 0;
-	webcam.initGrabber(1280, 720);
+	bool init = webcam.initGrabber(1280, 720);
 
 	ofSetWindowTitle("RuttEtra");
 
@@ -60,39 +57,19 @@ void ofApp::setup() {
 
 //--------------------------------------------------------------
 void ofApp::update() {
-	switch (source)
-	{
-	case 0:
-		videoPlayer.update();
-		pixels = videoPlayer.getPixelsRef();
-		break;
-	case 1:
+
 		webcam.update();
 		pixels = webcam.getPixelsRef();
-		break;
-	default:
-		break;
-	}
-	
 }
 
 //--------------------------------------------------------------
 void ofApp::draw() {
 	int stepWidth = ofGetWidth() / xStep;
 	int stepHeight = ofGetHeight() / yStep;
-	switch (source)
-	{
-	case 0:
-		stepWidthTexture = videoPlayer.getWidth() / xStep;
-		stepHeightTexture = videoPlayer.getHeight() / yStep;
-		break;
-	case 1:
+
 		stepWidthTexture = webcam.getWidth() / xStep;
 		stepHeightTexture = webcam.getHeight() / yStep;
-		break;
-	default:
-		break;
-	}
+		
 	// draw to fbo begin
 	fbo.begin();
 	ofClear(fillColor);
@@ -164,7 +141,6 @@ void ofApp::draw() {
 	shaderfbo.end();
 	// fbo for shader end
 
-	videoPlayer.draw(20, 20);
 	//webcam.draw(500, 20);
 	// send screen to Spout
 	switch (textureToSend) {
@@ -172,12 +148,9 @@ void ofApp::draw() {
 		spout.sendTexture(fbo.getTexture(), "RuttEtra");
 		break;
 	case 1:
-		spout.sendTexture(videoPlayer.getTexture(), "RuttEtra");
-		break;
-	case 2:
 		spout.sendTexture(shaderfbo.getTexture(), "RuttEtra");
 		break;
-	case 3:
+	case 2:
 		spout.sendTexture(webcam.getTexture(), "RuttEtra");
 		break;
 	default:
@@ -199,26 +172,17 @@ void ofApp::keyReleased(int key) {
 	case 'f':
 		ofToggleFullscreen();
 		break;
-	case 'c':
-		source = 1;
-		break;
-	case 'v':
-		source = 0;
-		break;
 	case 't':
 		drawText = !drawText;
 		break;
 	case '0':
 		textureToSend = 0;
 		break;
-	case '1':
+	case '2':
 		textureToSend = 1;
 		break;
-	case '2':
-		textureToSend = 2;
-		break;
 	case '3':
-		textureToSend = 3;
+		textureToSend = 2;
 		break;
 	default:
 		break;
