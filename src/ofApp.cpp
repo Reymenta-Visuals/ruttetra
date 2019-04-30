@@ -135,13 +135,13 @@ void ofApp::draw() {
 	//we have to transform the coords to what the shader is expecting which is 0,0 in the center and y axis flipped. 
 	shader.setUniform2f("mouse", mouseX - ofGetWidth() / 2, ofGetHeight() / 2 - mouseY);
 	//fbo.draw(0, 0, ofGetWidth(), ofGetHeight());
-	if (drawText) font.drawStringAsShapes("Artist de ouf", 90, 260);
+	if (drawText) font.drawStringAsShapes("batchass", 90, 260);
 	shader.end();
 
 	shaderfbo.end();
 	// fbo for shader end
 
-	//webcam.draw(500, 20);
+	
 	// send screen to Spout
 	switch (textureToSend) {
 	case 0:
@@ -156,7 +156,8 @@ void ofApp::draw() {
 	default:
 		break;
 	}
-	
+	//webcam.draw(500, 20);
+	fbo.draw(0, 0, ofGetWidth(), ofGetHeight());
 }
 void ofApp::exit() {
 	spout.exit();
@@ -173,15 +174,15 @@ void ofApp::keyReleased(int key) {
 		ofToggleFullscreen();
 		break;
 	case 't':
-		drawText = !drawText;
+		//drawText = !drawText;
 		break;
-	case '0':
+	case 'a':
 		textureToSend = 0;
 		break;
-	case '2':
+	case 'z':
 		textureToSend = 1;
 		break;
-	case '3':
+	case 'e':
 		textureToSend = 2;
 		break;
 	default:
