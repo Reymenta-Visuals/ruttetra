@@ -6,7 +6,25 @@ void ofApp::setup() {
 	ofEnableAlphaBlending();
 
 	textureToSend = 0;
-	bool init = webcam.initGrabber(1280, 720);
+	vector<ofVideoDevice> devices = webcam.listDevices();
+
+	for (int i = 0; i < devices.size(); i++) {
+		if (devices[i].bAvailable) {
+			ofLogNotice() << devices[i].id << ": " << devices[i].deviceName;
+		}
+		else {
+			ofLogNotice() << devices[i].id << ": " << devices[i].deviceName << " - unavailable ";
+		}
+	}
+	if (settings.loadFile("settings.xml") == false) {
+		ofLog() << "XML ERROR, possibly quit";
+	}
+	settings.pushTag("settings");
+	webcam.setDeviceID(settings.getValue("cam", 2));
+	webcam.setDesiredFrameRate(60);
+
+	webcam.setup(1280, 720);
+	//bool init = webcam.initGrabber(1280, 720);
 
 	ofSetWindowTitle("RuttEtra");
 
@@ -39,7 +57,7 @@ void ofApp::setup() {
 
 	//assign pixel colour to line segments
 	color = true;
-
+	lineWidth = 3;
 	// text
 	font.load("type/verdana.ttf", 100, true, false, true, 0.4, 72);
 	// shader
@@ -74,7 +92,7 @@ void ofApp::draw() {
 	fbo.begin();
 	ofClear(fillColor);
 	ofSetColor(lineColor);
-	ofSetLineWidth(3);
+	ofSetLineWidth(lineWidth);
 
 	int cY = 0;
 	
@@ -174,16 +192,21 @@ void ofApp::keyReleased(int key) {
 		ofToggleFullscreen();
 		break;
 	case 't':
-		//drawText = !drawText;
+		drawText = !drawText;
 		break;
 	case 'a':
-		textureToSend = 0;
+		lineWidth--;
+		if (lineWidth < 1) lineWidth = 0;
 		break;
 	case 'z':
-		textureToSend = 1;
+		lineWidth++;
+		if (lineWidth > 30) lineWidth = 30;
 		break;
 	case 'e':
-		textureToSend = 2;
+		textureToSend = 0;
+		break;
+	case 'r':
+		textureToSend = 1;
 		break;
 	default:
 		break;

@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "ofxSpout2Sender.h"
+#include "ofxXmlSettings.h"
 
 class ofApp : public ofBaseApp {
 
@@ -27,6 +28,7 @@ public:
 	bool color;
 
 	int threshold;
+	int lineWidth;
 
 	ofPixels pixels;
 	ofColor lineColor;
@@ -45,4 +47,6 @@ public:
 
 	ofxSpout2::Sender spout;
 	int textureToSend;
+
+	ofxXmlSettings 				settings;
 };
