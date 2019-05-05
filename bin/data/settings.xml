@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<cameraId>2</cameraId>
+<Parameters>
+	<OSC>
+		<OSC_as_JSON>1</OSC_as_JSON>
+		<Host_ip>localhost</Host_ip>
+		<Output_port>7000</Output_port>
+		<Input_port>4321</Input_port>
+	</OSC>
+</Parameters>
